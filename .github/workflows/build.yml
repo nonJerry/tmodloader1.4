@@ -17,6 +17,10 @@ on:
         default: ""
         type: string
         description: "The currently used tModLoader version"
+    secrets:
+      DOCKER_TOKEN:
+        required: true
+        description: "Docker Hub access token"
 
 permissions:
   contents: read

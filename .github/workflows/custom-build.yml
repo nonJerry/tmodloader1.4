@@ -46,6 +46,8 @@ jobs:
     name: Build
     needs: check-tmodloader-version
     uses: ./.github/workflows/build.yml
+    secrets:
+      DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
     with:
       SHOULD_UPDATE: ${{ needs.check-tmodloader-version.outputs.SHOULD_UPDATE }}
       REPO_VERSION: ${{needs.check-tmodloader-version.outputs.REPO_VERSION}}
