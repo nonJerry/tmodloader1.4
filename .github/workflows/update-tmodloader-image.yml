@@ -65,6 +65,7 @@ jobs:
         with:
           push: true
           load: true
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
           cache-from: |
             type=gha,scope=tmodloader1.4
             type=registry,ref=ghcr.io/nonjerry/tmodloader1.4:buildcache

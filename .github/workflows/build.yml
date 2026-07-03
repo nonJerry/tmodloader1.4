@@ -84,6 +84,7 @@ jobs:
           file: ${{ matrix.image.dockerfile }}
           target: ${{ matrix.image.target }}
           tags: nonjerry/${{ matrix.image.name }}:ci
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
           load: true
           cache-from: |
             type=gha,scope=${{ matrix.image.name }}
