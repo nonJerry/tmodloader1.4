@@ -56,12 +56,6 @@ jobs:
   e2e:
     name: E2E
     runs-on: ubuntu-latest
-    env:
-      DOCKER_BUILDKIT: 1
-      COMPOSE_DOCKER_CLI_BUILD: 1
-      SHOULD_UPDATE: ${{ inputs.SHOULD_UPDATE }}
-      REPO_VERSION: ${{ inputs.REPO_VERSION }}
-      CURRENT_VERSION: ${{ inputs.CURRENT_VERSION }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
@@ -70,23 +64,29 @@ jobs:
         with:
           name: terraria-backend-image
           path: ${{ runner.temp }}/
-      - run: docker load -i ${{ runner.temp }}/terraria-backend-image.tar
-
       - uses: actions/download-artifact@v7
         with:
           name: terraria-frontend-image
           path: ${{ runner.temp }}/
-      - run: docker load -i ${{ runner.temp }}/terraria-frontend-image.tar
-
       - uses: actions/download-artifact@v7
         with:
           name: tmodloader1.4-image
           path: ${{ runner.temp }}/
-      - run: docker load -i ${{ runner.temp }}/tmodloader1.4-image.tar
 
-      - name: Update Dockerfile Version
-        if: ${{ env.SHOULD_UPDATE == 'true' }}
-        run: sed -i "s/$CURRENT_VERSION/$REPO_VERSION/" ./Dockerfile
+      - name: Load images
+        run: |
+          for image in terraria-backend terraria-frontend tmodloader1.4; do
+            docker load -i "${{ runner.temp }}/$image-image.tar" &
+          done
+          wait
+
+      - name: Create empty config files
+        run: touch .env dev/.env control/frontend/.env control/backend/.env control/redis/redis.env control/redis/redis.conf
+
+      # Boots in the background while the following steps install dependencies
+      - name: Start stack
+        working-directory: dev
+        run: docker compose up -d
 
       - name: Setup cache for Playwright browsers
         uses: actions/cache@v5
@@ -110,11 +110,9 @@ jobs:
         working-directory: control/frontend
         run: pnpm playwright install --with-deps
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Create empty config files
-        run: touch .env dev/.env control/frontend/.env control/backend/.env control/redis/redis.env control/redis/redis.conf
+      - name: Wait for Terraria server
+        run: |
+          timeout 180 bash -c 'until docker logs terraria 2>&1 | grep -qE "Listening on port 7777|: No players connected"; do sleep 2; done'
 
       - name: Run e2e tests
         run: pnpm test:e2e

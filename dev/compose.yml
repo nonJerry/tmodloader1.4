@@ -23,6 +23,8 @@ services:
     volumes:
       - server_data:/data
       - ../control/api:/www/cgi-bin/api:Z,ro
+    environment:
+      TMOD_WORLDSIZE: 1
     env_file:
       - .env
     entrypoint: [ "/bin/sh", "-c", "./entrypoint.sh & tail -F /tmp/busy.pipe & exec busybox httpd -f -p 6002 -h /www" ]

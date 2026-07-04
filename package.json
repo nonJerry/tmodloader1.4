@@ -13,7 +13,6 @@
     "dev:frontend": "pnpm --filter @terraria-podman/control-frontend dev",
     "full-stack": "cd dev && podman compose up --build -d",
     "full-stack:docker": "cd dev && docker compose up --build -d",
-    "full-stack-no-build:docker": "cd dev && docker compose up",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "test:ci": "pnpm -r test:ci",
