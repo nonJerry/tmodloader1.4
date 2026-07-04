@@ -43,7 +43,6 @@ if [ -e "/data/tModLoader/Worlds/$TMOD_WORLDNAME.wld" ]; then
 else
 # If it does not, alert the player, and set the startup parameters to automatically generate the world.
     echo -e "[!!] WARNING: The world \"$TMOD_WORLDNAME\" was not found. The server will automatically create a new world."
-    sleep 3s
     echo "world=/data/tModLoader/Worlds/$TMOD_WORLDNAME.wld" >> "$configPath"
     echo "worldpath=/data/tModLoader/Worlds/" >> "$configPath"
     echo "worldname=$TMOD_WORLDNAME" >> "$configPath"
