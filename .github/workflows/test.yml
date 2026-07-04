@@ -4,7 +4,8 @@ on:
   workflow_call:
     inputs:
       SHOULD_UPDATE:
-        required: true
+        required: false
+        default: "false"
         type: string
         description: "Whether to update the tModLoader version"
       REPO_VERSION:

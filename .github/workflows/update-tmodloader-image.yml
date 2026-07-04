@@ -4,77 +4,65 @@ on:
   workflow_call:
     inputs:
       SHOULD_UPDATE:
-        required: true
+        required: false
+        default: "false"
         type: string
-        description: "Whether to update the tModLoader version"
+        description: "Whether to update the tModLoader version in the Dockerfile"
       REPO_VERSION:
         required: true
         type: string
-        description: "The latest tModLoader version"
+        description: "The tModLoader version to tag the image with"
       CURRENT_VERSION:
         required: true
         type: string
         description: "The currently used tModLoader version"
+      AS_LATEST:
+        required: false
+        default: true
+        type: boolean
+        description: "Also push the image as :latest"
 
 permissions:
   contents: write
-  packages: write
 
 jobs:
   update-tmodloader-image:
-    name: Dockerfile in Docker Registry
+    name: Push Docker Image to Registry
     runs-on: ubuntu-latest
     env:
       SHOULD_UPDATE: ${{ inputs.SHOULD_UPDATE }}
       REPO_VERSION: ${{ inputs.REPO_VERSION }}
       CURRENT_VERSION: ${{ inputs.CURRENT_VERSION }}
-      DOCKER_BUILDKIT: 1
-      COMPOSE_DOCKER_CLI_BUILD: 1
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
-        with:
-          sparse-checkout: .
 
       - uses: actions/download-artifact@v7
         with:
           name: tmodloader1.4-image
           path: ${{ runner.temp }}/
       - run: docker load -i ${{ runner.temp }}/tmodloader1.4-image.tar
-      - run: docker tag nonjerry/tmodloader1.4:ci nonjerry/tmodloader1.4:latest
-      - run: docker tag nonjerry/tmodloader1.4:ci "nonjerry/tmodloader1.4:$REPO_VERSION"
 
       - name: Login to Docker Hub
         uses: docker/login-action@v4
         with:
           username: ${{ vars.DOCKER_USER }}
           password: ${{ secrets.DOCKER_TOKEN }}
-      
-      - name: Login to GHCR
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+      - name: Push version tag
+        run: |
+          docker tag nonjerry/tmodloader1.4:ci "${{ vars.DOCKER_USER }}/tmodloader1.4:$REPO_VERSION"
+          docker push "${{ vars.DOCKER_USER }}/tmodloader1.4:$REPO_VERSION"
 
-      - name: Build and push Docker Image
-        uses: docker/build-push-action@v7
-        with:
-          push: true
-          load: true
-          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
-          cache-from: |
-            type=gha,scope=tmodloader1.4
-            type=registry,ref=ghcr.io/nonjerry/tmodloader1.4:buildcache
-          cache-to: |
-            type=gha,mode=max,scope=tmodloader1.4
-            type=registry,mode=max,ref=ghcr.io/nonjerry/tmodloader1.4:buildcache
-          tags: |
-            ${{ vars.DOCKER_USER }}/tmodloader1.4:${{ env.REPO_VERSION }}
-            ${{ vars.DOCKER_USER }}/tmodloader1.4:latest
+      - name: Push latest tag
+        if: ${{ inputs.AS_LATEST }}
+        run: |
+          docker tag nonjerry/tmodloader1.4:ci "${{ vars.DOCKER_USER }}/tmodloader1.4:latest"
+          docker push "${{ vars.DOCKER_USER }}/tmodloader1.4:latest"
+
+      - name: Update Dockerfile Version
+        if: ${{ env.SHOULD_UPDATE == 'true' }}
+        run: sed -i "s/$CURRENT_VERSION/$REPO_VERSION/" ./Dockerfile
 
       - uses: stefanzweifel/git-auto-commit-action@v7
         if: ${{ env.SHOULD_UPDATE == 'true' }}

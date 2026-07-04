@@ -9,26 +9,7 @@ permissions:
 jobs:
   check-tmodloader-version:
     name: Check tModLoader Version
-    runs-on: ubuntu-latest
-    outputs:
-      SHOULD_UPDATE: ${{ steps.compareVersions.outputs.SHOULD_UPDATE }}
-      CURRENT_VERSION: ${{ steps.getCurrentVersion.outputs.CURRENT_VERSION }}
-      REPO_VERSION: ${{ steps.getRepoVersion.outputs.REPO_VERSION }}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v7
-        with:
-          sparse-checkout: |
-            Dockerfile
-      - name: Get Current Version
-        id: getCurrentVersion
-        run: echo "CURRENT_VERSION=$(grep -oP '(?<=\bTMOD_VERSION=)[^;]+' ./Dockerfile)" >> $GITHUB_OUTPUT
-      - name: Get Repository Version
-        id: getRepoVersion
-        run: echo "REPO_VERSION=$(curl -sL https://api.github.com/repos/tModLoader/tModLoader/releases | jq -r 'map(select(.prerelease==false)) | first | .tag_name')" >> $GITHUB_OUTPUT
-      - name: Compare Versions
-        id: compareVersions
-        run: echo "SHOULD_UPDATE=${{ steps.getCurrentVersion.outputs.CURRENT_VERSION != steps.getRepoVersion.outputs.REPO_VERSION }}" >> $GITHUB_OUTPUT
+    uses: ./.github/workflows/check-version.yml
 
   build:
     name: Build

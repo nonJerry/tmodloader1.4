@@ -13,12 +13,8 @@ jobs:
   build:
     name: Build
     uses: ./.github/workflows/build.yml
-    with:
-      SHOULD_UPDATE: false
 
   tests:
     name: Tests
     needs: build
     uses: ./.github/workflows/test.yml
-    with:
-      SHOULD_UPDATE: false
