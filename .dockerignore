@@ -1,6 +1,6 @@
 .git
 README.md
-docker-compose.yml
+compose.yml
 
 # Node
 node_modules
@@ -11,10 +11,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Env / secrets
-!*.env
 .env.*.local
-*.key
-*.pem
 
 # OS / editors
 .DS_Store
@@ -51,3 +48,12 @@ temp
 # Keep control folder files needed for builds
 !control/**
 !control/**/package*.json
+
+# Secrets — must stay after the control re-includes so they take precedence
+.env
+dev/.env
+control/backend/.env
+control/redis/redis.env
+users.json
+*.key
+*.pem
