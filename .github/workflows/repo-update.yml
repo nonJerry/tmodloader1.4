@@ -46,3 +46,10 @@ jobs:
       SHOULD_UPDATE: ${{ needs.check-tmodloader-version.outputs.SHOULD_UPDATE }}
       REPO_VERSION: ${{needs.check-tmodloader-version.outputs.REPO_VERSION}}
       CURRENT_VERSION: ${{needs.check-tmodloader-version.outputs.CURRENT_VERSION}}
+
+  publish-control-images:
+    name: Publish Control Images
+    if: github.event.pull_request.merged == true
+    needs: tests
+    uses: ./.github/workflows/publish-control-images.yml
+    secrets: inherit
