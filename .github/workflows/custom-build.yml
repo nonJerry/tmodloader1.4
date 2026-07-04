@@ -18,29 +18,9 @@ permissions:
 jobs:
   check-tmodloader-version:
     name: Check tModLoader Version
-    runs-on: ubuntu-latest
-    outputs:
-      SHOULD_UPDATE: ${{ steps.compareVersions.outputs.SHOULD_UPDATE }}
-      CURRENT_VERSION: ${{ steps.getCurrentVersion.outputs.CURRENT_VERSION }}
-      REPO_VERSION: ${{ steps.getRepoVersion.outputs.REPO_VERSION }}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v7
-        with:
-          sparse-checkout: |
-            Dockerfile
-
-      - name: Get Current Version
-        id: getCurrentVersion
-        run: echo "CURRENT_VERSION=$(grep -oP '(?<=\bTMOD_VERSION=)[^;]+' ./Dockerfile)" >> $GITHUB_OUTPUT
-
-      - name: Get Repository Version
-        id: getRepoVersion
-        run: echo "REPO_VERSION=$(curl -sL https://api.github.com/repos/tModLoader/tModLoader/releases | jq -r 'map(select(.prerelease==false)) | first | .tag_name')" >> $GITHUB_OUTPUT
-
-      - name: Compare Versions
-        id: compareVersions
-        run: echo "SHOULD_UPDATE=${{ steps.getCurrentVersion.outputs.CURRENT_VERSION != steps.getRepoVersion.outputs.REPO_VERSION }}" >> $GITHUB_OUTPUT
+    uses: ./.github/workflows/check-version.yml
+    with:
+      TARGET_VERSION: ${{ inputs.release }}
 
   build:
     name: Build
@@ -48,8 +28,8 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       SHOULD_UPDATE: ${{ needs.check-tmodloader-version.outputs.SHOULD_UPDATE }}
-      REPO_VERSION: ${{needs.check-tmodloader-version.outputs.REPO_VERSION}}
-      CURRENT_VERSION: ${{needs.check-tmodloader-version.outputs.CURRENT_VERSION}}
+      REPO_VERSION: ${{ needs.check-tmodloader-version.outputs.REPO_VERSION }}
+      CURRENT_VERSION: ${{ needs.check-tmodloader-version.outputs.CURRENT_VERSION }}
 
   tests:
     name: Tests
@@ -59,68 +39,18 @@ jobs:
     uses: ./.github/workflows/test.yml
     with:
       SHOULD_UPDATE: ${{ needs.check-tmodloader-version.outputs.SHOULD_UPDATE }}
-      REPO_VERSION: ${{needs.check-tmodloader-version.outputs.REPO_VERSION}}
-      CURRENT_VERSION: ${{needs.check-tmodloader-version.outputs.CURRENT_VERSION}}
+      REPO_VERSION: ${{ needs.check-tmodloader-version.outputs.REPO_VERSION }}
+      CURRENT_VERSION: ${{ needs.check-tmodloader-version.outputs.CURRENT_VERSION }}
 
-  manual-run:
+  push:
     name: Update Docker Image in Docker Registry
-    runs-on: ubuntu-latest
     needs:
       - check-tmodloader-version
       - tests
-    env:
-      SHOULD_UPDATE: ${{ needs.check-tmodloader-version.outputs.SHOULD_UPDATE }}
-      REPO_VERSION: ${{needs.check-tmodloader-version.outputs.REPO_VERSION}}
-      CURRENT_VERSION: ${{needs.check-tmodloader-version.outputs.CURRENT_VERSION}}
-      RELEASE: ${{ inputs.release }}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v7
-        with:
-          sparse-checkout: .
-
-      - uses: actions/download-artifact@v7
-        with:
-          name: tmodloader1.4-image
-          path: ${{ runner.temp }}/
-      - run: docker load -i ${{ runner.temp }}/tmodloader1.4-image.tar
-      - run: docker tag nonjerry/tmodloader1.4:ci nonjerry/tmodloader1.4:latest
-      - run: docker tag nonjerry/tmodloader1.4:ci "nonjerry/tmodloader1.4:$RELEASE"
-
-      - name: Print Version to Download
-        run: echo "$RELEASE"
-
-      - name: Update Dockerfile Version
-        if: ${{ env.SHOULD_UPDATE == 'true' }}
-        run: sed -i "s/$CURRENT_VERSION/$RELEASE/" ./Dockerfile
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v4
-        with:
-          username: ${{ vars.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-
-      - name: Login to GHCR
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build and push Docker Image
-        uses: docker/build-push-action@v7
-        with:
-          push: true
-          load: true
-          cache-from: |
-            type=gha,scope=tmodloader1.4
-            type=registry,ref=ghcr.io/nonjerry/tmodloader1.4:buildcache
-          cache-to: |
-            type=gha,mode=max,scope=tmodloader1.4
-            type=registry,mode=max,ref=ghcr.io/nonjerry/tmodloader1.4:buildcache
-          tags: |
-            ${{ vars.DOCKER_USER }}/tmodloader1.4:${{ inputs.release }}
-            ${{ github.event.inputs.aslatest == 'true' && 'nonjerry/tmodloader1.4:latest' || '' }}
+    uses: ./.github/workflows/update-tmodloader-image.yml
+    secrets: inherit
+    # SHOULD_UPDATE stays at its "false" default: custom builds never commit a Dockerfile change
+    with:
+      REPO_VERSION: ${{ inputs.release }}
+      CURRENT_VERSION: ${{ needs.check-tmodloader-version.outputs.CURRENT_VERSION }}
+      AS_LATEST: ${{ inputs.aslatest }}

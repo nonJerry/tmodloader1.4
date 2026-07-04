@@ -1,0 +1,57 @@
+name: "Check Version"
+
+on:
+  workflow_call:
+    inputs:
+      TARGET_VERSION:
+        required: false
+        default: ""
+        type: string
+        description: "Version to compare against; the latest stable tModLoader release if empty"
+    outputs:
+      SHOULD_UPDATE:
+        description: "Whether the Dockerfile version differs from the target version"
+        value: ${{ jobs.check.outputs.SHOULD_UPDATE }}
+      CURRENT_VERSION:
+        description: "The version currently in the Dockerfile"
+        value: ${{ jobs.check.outputs.CURRENT_VERSION }}
+      REPO_VERSION:
+        description: "The target tModLoader version"
+        value: ${{ jobs.check.outputs.REPO_VERSION }}
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Compare tModLoader Versions
+    runs-on: ubuntu-latest
+    outputs:
+      SHOULD_UPDATE: ${{ steps.compareVersions.outputs.SHOULD_UPDATE }}
+      CURRENT_VERSION: ${{ steps.getCurrentVersion.outputs.CURRENT_VERSION }}
+      REPO_VERSION: ${{ steps.getRepoVersion.outputs.REPO_VERSION }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: |
+            Dockerfile
+
+      - name: Get Current Version
+        id: getCurrentVersion
+        run: echo "CURRENT_VERSION=$(grep -oP '(?<=\bTMOD_VERSION=)[^;]+' ./Dockerfile)" >> $GITHUB_OUTPUT
+
+      - name: Get Target Version
+        id: getRepoVersion
+        env:
+          TARGET_VERSION: ${{ inputs.TARGET_VERSION }}
+        run: |
+          if [ -n "$TARGET_VERSION" ]; then
+            echo "REPO_VERSION=$TARGET_VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "REPO_VERSION=$(curl -sL https://api.github.com/repos/tModLoader/tModLoader/releases | jq -r 'map(select(.prerelease==false)) | first | .tag_name')" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Compare Versions
+        id: compareVersions
+        run: echo "SHOULD_UPDATE=${{ steps.getCurrentVersion.outputs.CURRENT_VERSION != steps.getRepoVersion.outputs.REPO_VERSION }}" >> $GITHUB_OUTPUT
