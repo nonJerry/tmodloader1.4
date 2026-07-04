@@ -71,5 +71,15 @@ jobs:
           commit_message: "Github Action: Updating to tModLoader version ${{ env.REPO_VERSION }}"
           commit_options: "--no-verify --signoff"
           repository: .
-          tagging_message: "${{ env.REPO_VERSION }}"
           create_branch: false
+
+      # The same version can be bumped from several branches; only the first run creates the tag
+      - name: Tag version
+        if: ${{ env.SHOULD_UPDATE == 'true' }}
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/$REPO_VERSION" >/dev/null; then
+            echo "Tag $REPO_VERSION already exists, skipping"
+          else
+            git tag "$REPO_VERSION"
+            git push origin "refs/tags/$REPO_VERSION"
+          fi
