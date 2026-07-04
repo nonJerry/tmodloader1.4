@@ -20,6 +20,30 @@ describe('Backend', () => {
   })
 })
 
+describe('Session persistence', () => {
+  it('sets a session cookie on the first request', async () => {
+    const res = await request(app).get('/csrf-token').expect(200)
+
+    const cookies = res.headers['set-cookie'] as unknown as string[]
+    expect(cookies.some(cookie => cookie.startsWith('connect.sid='))).toBe(true)
+  })
+
+  it('keeps the CSRF token valid across requests so login works', async () => {
+    const agent = request.agent(app)
+
+    const tokenRes = await agent.get('/csrf-token').expect(200)
+
+    const res = await agent
+      .post('/login')
+      .set('x-csrf-token', tokenRes.body.csrfToken)
+      .send({ username: 'alice', password: 'alicePassword' })
+      .set('Accept', 'application/json')
+
+    expect(res.status).toBe(200)
+    expect(res.body).toMatchObject({ success: true })
+  })
+})
+
 describe('Auth routes', () => {
   it('include the login route', async () => {
     const res = await request(app)

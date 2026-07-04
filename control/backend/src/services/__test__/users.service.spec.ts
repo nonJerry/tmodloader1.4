@@ -67,4 +67,16 @@ describe('Users service', () => {
 
     expect(users).toEqual(secretTestUsers)
   })
+
+  it('refuses to fall back to example users in production', async () => {
+    vi.unstubAllEnvs()
+    vi.resetModules()
+    vi.stubEnv('NODE_ENV', 'production')
+
+    mockFiles({
+      [path.resolve(projectRoot, 'example.users.json')]: JSON.stringify({ takagi: '$2b$10$hashvalue3' })
+    })
+
+    await expect(import('../users.service.js')).rejects.toThrow('No users file found')
+  })
 })

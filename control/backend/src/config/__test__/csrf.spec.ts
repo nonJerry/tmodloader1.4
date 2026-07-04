@@ -40,6 +40,29 @@ describe('CSRF config', () => {
     })
   })
 
+  it('binds the session identifier to the access token cookie when present', async () => {
+    vi.stubEnv('NODE_ENV', 'development')
+
+    const captured: { options?: Record<string, unknown> } = {}
+    await captureCsrf(captured)
+
+    await import('../csrf.js')
+    const config = (await import('../constants.js')).config
+    const { createToken } = await import('../../services/jwt.service.js')
+
+    const getSessionIdentifier = captured.options?.getSessionIdentifier as (req: unknown) => string
+    const token = createToken('alice', 'jwt-session-id')
+
+    const withToken = { cookies: { [config.accessTokenCookie]: token }, session: { id: 'express-session-id' } }
+    expect(getSessionIdentifier(withToken)).toBe('jwt-session-id')
+
+    const withoutToken = { cookies: {}, session: { id: 'express-session-id' } }
+    expect(getSessionIdentifier(withoutToken)).toBe('express-session-id')
+
+    const withInvalidToken = { cookies: { [config.accessTokenCookie]: 'garbage' }, session: { id: 'express-session-id' } }
+    expect(getSessionIdentifier(withInvalidToken)).toBe('express-session-id')
+  })
+
   it('does not enforce secure cookies in development', async () => {
     vi.stubEnv('NODE_ENV', 'development')
     vi.stubEnv('CSRF_SECRET', 'dev-csrf')

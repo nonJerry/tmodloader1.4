@@ -15,6 +15,11 @@ import session from './config/session.js'
 import { startStatusPolling } from './services/status.service.js'
 import testRouter from './api/routes/test.routes.js'
 
+declare module 'express-session' {
+  interface SessionData {
+    createdAt?: number
+  }
+}
 
 console.log(`Running in production: ${IS_PRODUCTION}`)
 export const app = express()
@@ -33,13 +38,13 @@ app.set('trust proxy', 'loopback, uniquelocal')
 
 // Log all requests
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
-  (req.session as any).lastSeen = Date.now()
+  console.log(`${req.method} ${req.url}`)
   next()
 })
 
 
 app.get("/csrf-token", (req, res) => {
+  req.session.createdAt ??= Date.now()
   const csrfToken = generateCsrfToken(req, res)
   res.status(200).json({ csrfToken })
 })
