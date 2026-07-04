@@ -12,7 +12,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  workers: undefined,
+  workers: process.env.CI ? '100%' : undefined,
   fullyParallel: true,
   reporter: process.env.CI ? 'github' : 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -48,14 +48,8 @@ export default defineConfig({
   /* Folder for test artifacts such as screenshots, videos, traces, etc. */
   // outputDir: 'test-results/',
 
-  /* Run your local dev server before starting the tests */
-  webServer: process.env.CI ? {
-    command: 'pnpm full-stack-no-build:docker',
-    cwd: '../../',
-    reuseExistingServer: true,
-    wait: { stdout: /Listening on port 7777|: No players connected/ },
-    timeout: 180 * 1000,
-  } : {
+  /* Run your local dev server before starting the tests. In CI the workflow starts the docker stack itself. */
+  webServer: process.env.CI ? undefined : {
     command: 'pnpm dev',
     url: 'http://localhost:5173',
     cwd: '../../',
