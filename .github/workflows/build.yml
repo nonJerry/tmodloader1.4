@@ -17,10 +17,6 @@ on:
         default: ""
         type: string
         description: "The currently used tModLoader version"
-    secrets:
-      DOCKER_TOKEN:
-        required: true
-        description: "Docker Hub access token"
 
 permissions:
   contents: read
@@ -61,12 +57,6 @@ jobs:
         if: ${{ env.SHOULD_UPDATE == 'true' }}
         run: sed -i "s/$CURRENT_VERSION/$REPO_VERSION/" ./Dockerfile
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v4
-        with:
-          username: ${{ vars.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-          
       - name: Login to GHCR
         if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
         uses: docker/login-action@v4
