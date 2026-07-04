@@ -6,7 +6,7 @@ import { verifyToken } from "../services/jwt.service.js"
 export const { doubleCsrfProtection, invalidCsrfTokenError, generateCsrfToken } = doubleCsrf({
   getSecret: () => config.csrfSecret,
   getSessionIdentifier: (req) => {
-    const token = req.cookies?.accessToken
+    const token = req.cookies?.[config.accessTokenCookie]
 
     if (!token) return req.session.id
 
