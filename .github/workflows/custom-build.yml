@@ -74,6 +74,7 @@ jobs:
       SHOULD_UPDATE: ${{ needs.check-tmodloader-version.outputs.SHOULD_UPDATE }}
       REPO_VERSION: ${{needs.check-tmodloader-version.outputs.REPO_VERSION}}
       CURRENT_VERSION: ${{needs.check-tmodloader-version.outputs.CURRENT_VERSION}}
+      RELEASE: ${{ inputs.release }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
@@ -86,14 +87,14 @@ jobs:
           path: ${{ runner.temp }}/
       - run: docker load -i ${{ runner.temp }}/tmodloader1.4-image.tar
       - run: docker tag nonjerry/tmodloader1.4:ci nonjerry/tmodloader1.4:latest
-      - run: docker tag nonjerry/tmodloader1.4:ci nonjerry/tmodloader1.4:${{ inputs.release }}
+      - run: docker tag nonjerry/tmodloader1.4:ci "nonjerry/tmodloader1.4:$RELEASE"
 
       - name: Print Version to Download
-        run: echo ${{ inputs.release }}
+        run: echo "$RELEASE"
 
       - name: Update Dockerfile Version
         if: ${{ env.SHOULD_UPDATE == 'true' }}
-        run: sed -i "s/${{ env.CURRENT_VERSION }}/${{ inputs.release }}/" ./Dockerfile
+        run: sed -i "s/$CURRENT_VERSION/$RELEASE/" ./Dockerfile
 
       - name: Login to Docker Hub
         uses: docker/login-action@v4

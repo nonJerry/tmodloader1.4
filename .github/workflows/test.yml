@@ -35,7 +35,7 @@ jobs:
 
       - name: Update Dockerfile Version
         if: ${{ env.SHOULD_UPDATE == 'true' }}
-        run: sed -i "s/${{ env.CURRENT_VERSION }}/${{ env.REPO_VERSION }}/" ./Dockerfile
+        run: sed -i "s/$CURRENT_VERSION/$REPO_VERSION/" ./Dockerfile
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
@@ -85,7 +85,7 @@ jobs:
 
       - name: Update Dockerfile Version
         if: ${{ env.SHOULD_UPDATE == 'true' }}
-        run: sed -i "s/${{ env.CURRENT_VERSION }}/${{ env.REPO_VERSION }}/" ./Dockerfile
+        run: sed -i "s/$CURRENT_VERSION/$REPO_VERSION/" ./Dockerfile
 
       - name: Setup cache for Playwright browsers
         uses: actions/cache@v5
