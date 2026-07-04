@@ -72,6 +72,4 @@ jobs:
           commit_options: "--no-verify --signoff"
           repository: .
           tagging_message: "${{ env.REPO_VERSION }}"
-          skip_fetch: true
-          skip_checkout: true
           create_branch: false
