@@ -37,7 +37,6 @@ function shutdown () {
 if test -z "${TMOD_AUTODOWNLOAD}" ; then
     echo -e "[SYSTEM] No mods to download. If you wish to download mods at runtime, please set the TMOD_AUTODOWNLOAD environment variable equal to a comma separated list of Mod Workshop IDs."
     echo -e "[SYSTEM] For more information, please see the Github README."
-    sleep 5s
 else
     echo -e "[SYSTEM] Downloading Mods specified in the TMOD_AUTODOWNLOAD Environment Variable. This may hand a while depending on the number of mods..."
     # Convert the Comma Separated list of Mod IDs to a list of SteamCMD commands and call SteamCMD to download them all.
@@ -50,7 +49,6 @@ if test -z "${TMOD_ENABLEDMODS}" ; then
     echo -e "[SYSTEM] The TMOD_ENABLEDMODS environment variable is not set. Defaulting to the mods specified in /data/tModLoader/Mods/enabled.json"
     echo -e "[SYSTEM] To change which mods are enabled, set the TMOD_ENABLEDMODS environment variable to a comma seperated list of mod Workshop IDs."
     echo -e "[SYSTEM] For more information, please see the Github README."
-    sleep 5s
 else
   enabledpath=/data/tModLoader/Mods/enabled.json
   modpath=/data/steamMods/steamapps/workshop/content/1281930
@@ -96,7 +94,6 @@ if [ -e "$pipe" ]; then
 fi
 
 # Create the tmux and pipe, so we can inject commands from 'docker exec [container id] inject [command]' on the host
-sleep 5s
 tmux new-session -s terraria -d "$server | tee -a $pipe" >/dev/null
 pid=$(tmux display-message -p -t terraria "#{pid}")
 echo "$pid" > /tmp/terraria.pid
