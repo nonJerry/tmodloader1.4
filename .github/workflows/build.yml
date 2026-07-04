@@ -48,7 +48,10 @@ jobs:
             dockerfile: control/backend/Dockerfile
             context: .
             target: development
-            args: NODE_ENV=development
+          - name: terraria-backend-prod
+            dockerfile: control/backend/Dockerfile
+            context: .
+            target: production
 
     steps:
       - name: Checkout Repository

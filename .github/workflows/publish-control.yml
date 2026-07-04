@@ -1,0 +1,23 @@
+name: Publish Control Images
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: Build
+    uses: ./.github/workflows/build.yml
+
+  tests:
+    name: Tests
+    needs: build
+    uses: ./.github/workflows/test.yml
+
+  publish:
+    name: Publish
+    needs: tests
+    uses: ./.github/workflows/publish-control-images.yml
+    secrets: inherit
