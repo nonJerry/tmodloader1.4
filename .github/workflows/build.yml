@@ -91,7 +91,7 @@ jobs:
             type=registry,ref=ghcr.io/nonjerry/${{ matrix.image.name }}:buildcache
           cache-to: |
             type=gha,mode=max,scope=${{ matrix.image.name }}
-            ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork && format('type=registry,mode=max,ref=ghcr.io/nonjerry/{0}:buildcache', matrix.image.name) || '' }}
+            ${{ (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) && format('type=registry,mode=max,ref=ghcr.io/nonjerry/{0}:buildcache', matrix.image.name) || '' }}
 
       - run: docker save nonjerry/${{ matrix.image.name }}:ci -o ${{ matrix.image.name }}-image.tar
 
