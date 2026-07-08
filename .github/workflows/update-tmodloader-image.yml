@@ -69,11 +69,12 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v7
         if: ${{ env.SHOULD_UPDATE == 'true' }}
         with:
-          commit_user_name: Merge Bot
+          commit_user_name: Update Bot
           commit_message: "Github Action: Updating to tModLoader version ${{ env.REPO_VERSION }}"
           commit_options: "--no-verify --signoff"
           repository: .
           create_branch: false
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
 
       # The same version can be bumped from several branches; only the first run creates the tag
       - name: Tag version
