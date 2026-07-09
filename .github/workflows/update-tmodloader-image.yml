@@ -74,7 +74,6 @@ jobs:
           commit_options: "--no-verify --signoff"
           repository: .
           create_branch: false
-          ssh-key: ${{ secrets.DEPLOY_KEY }}
 
       # The same version can be bumped from several branches; only the first run creates the tag
       - name: Tag version
