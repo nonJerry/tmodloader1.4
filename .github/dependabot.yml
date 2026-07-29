@@ -10,7 +10,10 @@ updates:
       - "/"
     schedule:
       interval: "weekly"
-    assignees: 
+    # Only use versions older than pnpm's minimumReleaseAge policy (24h)
+    cooldown:
+      default-days: 2
+    assignees:
       - "nonJerry"
     groups:
       vue:
