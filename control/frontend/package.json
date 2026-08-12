@@ -32,7 +32,7 @@
     "vue-router": "^5.2.0"
   },
   "optionalDependencies": {
-    "@rolldown/binding-linux-x64-musl": "^1.2.2",
+    "@rolldown/binding-linux-x64-musl": "^1.2.3",
     "lightningcss-linux-x64-musl": "^1.33.0"
   },
   "devDependencies": {
