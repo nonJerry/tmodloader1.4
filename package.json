@@ -25,11 +25,11 @@
     "lint:frontend": "pnpm --filter @terraria-podman/control-frontend lint"
   },
   "devDependencies": {
-    "@vitest/ui": "^4.1.9",
-    "concurrently": "^8.2.0",
+    "@vitest/ui": "^4.1.10",
+    "concurrently": "^10.0.5",
     "cross-env": "^10.1.0",
     "jsonc-parser": "^3.3.1",
-    "oxlint": "^1.69.0"
+    "oxlint": "^1.78.0"
   },
   "overrides": {
     "glob": "^13.0.6"
