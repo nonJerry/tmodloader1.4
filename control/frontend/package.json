@@ -25,14 +25,14 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
-    "axios": "^1.19.0",
+    "axios": "^1.20.0",
     "pinia": "^4.0.3",
-    "sass": "^1.102.0",
-    "vue": "^3.5.41",
-    "vue-router": "^5.2.0"
+    "sass": "^1.103.1",
+    "vue": "^3.5.42",
+    "vue-router": "^5.3.0"
   },
   "optionalDependencies": {
-    "@rolldown/binding-linux-x64-musl": "^1.2.4",
+    "@rolldown/binding-linux-x64-musl": "^1.2.6",
     "lightningcss-linux-x64-musl": "^1.33.0"
   },
   "devDependencies": {
